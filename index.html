@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+ <!-- 页面基础信息与资源声明 -->
+ <meta charset="utf-8">
+ <meta name="viewport" content="width=device-width,initial-scale=1">
+ <title>二阶堂亚树 · 月度最佳选手</title>
+ <meta name="description" content="二阶堂亚树，月度最佳选手，+105.9 PT。红黑白选手揭晓动画。">
+ <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
+
+ <style>
+  /* ===== 字体与全局变量 ===== */
+  @font-face {
+   font-family: MatchTitle;
+   src: url("assets/fonts/title-black.ttf") format("truetype");
+   font-weight: 900;
+   font-style: normal;
+   font-display: block;
+  }
+
+  @font-face {
+   font-family: MatchScore;
+   src: url("assets/fonts/score-extrabold.ttf") format("truetype");
+   font-weight: 800;
+   font-style: normal;
+   font-display: block;
+  }
+
+  /* 页面主色与基础重置 */
+  :root { --red: #96141b; --black: #141414; --white: #fafaf7; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; }
+  body {
+   background: #141416;
+   color: #eee;
+   font-family: system-ui, -apple-system, "Microsoft YaHei", sans-serif;
+  }
+
+  /* 播放控制区的基础样式 */
+  button, select, input { font: inherit; }
+  button, select {
+   color: inherit;
+   background: transparent;
+   border: 1px solid #424247;
+   border-radius: 4px;
+   min-height: 38px;
+   padding: 0 13px;
+   cursor: pointer;
+  }
+  button:hover, select:hover { background: #303034; }
+  button:focus-visible, select:focus-visible, input:focus-visible {
+   outline: 2px solid #cf5f64;
+   outline-offset: 3px;
+  }
+  button:disabled { cursor: wait; opacity: .5; }
+  select option { background: #202024; }
+
+  /* 主容器与 1280 × 720 动画舞台 */
+  #app {
+   height: 100%;
+   display: flex;
+   flex-direction: column;
+   align-items: center;
+   justify-content: center;
+   gap: 16px;
+   padding: 20px 24px;
+  }
+  #viewport { position: relative; overflow: hidden; background: var(--white); flex: none; }
+  #stage {
+   position: absolute;
+   width: 1280px;
+   height: 720px;
+   transform-origin: 0 0;
+   background: var(--white);
+   isolation: isolate;
+   visibility: hidden;
+   overflow: hidden;
+  }
+  #stage.ready { visibility: visible; }
+  .layer { position: absolute; pointer-events: none; }
+  img { display: block; user-select: none; pointer-events: none; }
+
+  /* 背景层：斜切红色区域、黑色边缘、半调纹理与低透明度队徽。 */
+  #team-mark {
+   left: -130px; top: 130px; width: 640px; opacity: 0;
+   mix-blend-mode: multiply; transform: rotate(-13deg);
+  }
+  #red-plane {
+   inset: 0; background: var(--red);
+   clip-path: polygon(74% 0, 100% 0, 100% 100%, 54% 100%);
+   will-change: transform;
+  }
+  #red-edge {
+   inset: 0; background: var(--black);
+   clip-path: polygon(72.8% 0, 74% 0, 54% 100%, 52.8% 100%);
+   will-change: transform;
+  }
+  #texture-wrap {
+   inset: 0;
+   clip-path: polygon(72% 0, 100% 0, 100% 100%, 40% 100%);
+   opacity: 0;
+   mix-blend-mode: multiply;
+  }
+  #texture {
+   position: absolute; left: 555px; top: -30px; width: 1000px; height: 800px;
+   object-fit: cover; transform: rotate(-12deg); opacity: .70;
+  }
+  /* 人物层拆分为揭示、位移和缩放三层，便于分别控制动画。 */
+  #portrait-reveal { inset: 0; will-change: clip-path; }
+  #portrait-travel { inset: 0; will-change: transform; }
+  #portrait-zoom {
+   position: absolute; left: 328px; top: 25px; width: 1100px; height: 825px;
+   transform-origin: 64% 31%; will-change: transform;
+  }
+  #portrait { width: 1100px; height: 825px; }
+
+  /* 前景文字：月度标签、选手姓名、积分与装饰线。 */
+  #eyebrow {
+   left: 65px; top: 69px; display: flex; align-items: center; gap: 17px; color: var(--red);
+   font-family: MatchTitle, sans-serif; font-size: 25px; font-weight: 900; letter-spacing: 5px;
+   opacity: 0; will-change: transform, opacity;
+  }
+  #eyebrow::before { content: ""; display: block; width: 35px; height: 5px; background: var(--red); }
+  #name-mask { left: 61px; top: 236px; width: 545px; height: 103px; overflow: hidden; }
+  #player-name {
+   margin: 0; display: flex; color: var(--black); font-family: MatchTitle, sans-serif; font-weight: 900;
+   font-size: 76px; line-height: 1.2; letter-spacing: 4px; white-space: nowrap;
+  }
+  #player-name span { display: inline-block; will-change: transform, opacity; }
+  #name-rule {
+   left: 65px; top: 351px; width: 90px; height: 6px; background: var(--red);
+   transform-origin: left; will-change: transform;
+  }
+  #score-mask { left: 54px; top: 375px; width: 684px; height: 230px; overflow: hidden; }
+  #score-row {
+   display: flex; align-items: baseline; gap: 14px; white-space: nowrap; transform-origin: 35% 60%;
+   will-change: transform, opacity; color: var(--black); height: 100%;
+  }
+  #score-number {
+   font-family: MatchScore, "Arial Narrow", sans-serif; font-weight: 800; font-size: 208px;
+   line-height: 1; letter-spacing: -3px; font-variant-numeric: tabular-nums;
+  }
+  #score-unit {
+   font-family: MatchScore, sans-serif; font-weight: 800; font-size: 64px; line-height: 1;
+   color: var(--red); letter-spacing: 1px; will-change: transform, opacity;
+  }
+  #foot-rule {
+   left: 65px; top: 631px; width: 360px; height: 1px; background: var(--black);
+   opacity: 0; transform-origin: left;
+  }
+
+  /* 底部播放、进度、倍速与全屏控制 */
+  #controls { width: min(100%, 1280px); display: flex; align-items: center; gap: 10px; flex: none; }
+  #seek { min-width: 35px; flex: 1; accent-color: #af3039; height: 24px; cursor: pointer; }
+  #time {
+   font-variant-numeric: tabular-nums; white-space: nowrap; font-size: 13px; color: #aaaab2;
+   min-width: 92px; text-align: center;
+  }
+  .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+
+  /* 全屏时隐藏控制栏，鼠标操作后短暂显示 */
+  #app:fullscreen { padding: 0; gap: 0; background: #000; }
+  #app:fullscreen #controls {
+   position: absolute; bottom: 16px; left: 50%; transform: translateX(-50%);
+   width: min(calc(100% - 32px), 900px); padding: 10px 14px; background: #141418ed;
+   border-radius: 8px; opacity: 0; transition: opacity .2s;
+  }
+  #app:fullscreen.controls-visible #controls, #app:fullscreen #controls:focus-within { opacity: 1; }
+
+  /* 小屏设备下压缩控制区布局 */
+  @media (max-width: 600px) {
+   #app { padding: 10px; gap: 14px; }
+   #controls { gap: 6px; flex-wrap: wrap; }
+   button, select { padding: 0 10px; min-height: 40px; font-size: 14px; }
+   #seek { order: 5; flex-basis: calc(100% - 104px); }
+   #time { order: 6; }
+   #full { margin-left: auto; }
+  }
+ </style>
+</head>
+<body>
+<!-- 页面主体：动画视口和播放控制区 -->
+<main id="app">
+ <!-- 固定宽高比的动画视口 -->
+ <div id="viewport" role="img" aria-label="月度最佳选手，二阶堂亚树，积分 +105.9 PT。">
+  <div id="stage" aria-hidden="true">
+   <!-- 背景与装饰图层 -->
+   <img id="team-mark" class="layer" src="assets/team-logo.png" alt="" draggable="false">
+   <div id="red-edge" class="layer"></div>
+   <div id="red-plane" class="layer"></div>
+   <div id="texture-wrap" class="layer">
+    <img id="texture" src="assets/halftone-background.png" alt="" draggable="false">
+   </div>
+   <!-- 人物图层 -->
+   <div id="portrait-reveal" class="layer">
+    <div id="portrait-travel" class="layer">
+     <div id="portrait-zoom">
+      <img id="portrait" src="assets/player.png" alt="" draggable="false">
+     </div>
+    </div>
+   </div>
+   <!-- 前景文字与装饰线 -->
+   <div id="eyebrow" class="layer">月度最佳选手</div>
+   <div id="name-mask" class="layer">
+    <div id="player-name">
+     <span>二</span><span>阶</span><span>堂</span><span>亚</span><span>树</span>
+    </div>
+   </div>
+   <div id="name-rule" class="layer"></div>
+   <div id="score-mask" class="layer">
+    <div id="score-row"><span id="score-number">+105.9</span><span id="score-unit">PT</span></div>
+   </div>
+   <div id="foot-rule" class="layer"></div>
+  </div>
+ </div>
+
+ <!-- 播放控制区 -->
+ <div id="controls" aria-label="动画播放控制">
+  <button id="play" type="button" aria-label="暂停动画">暂停</button>
+  <button id="replay" type="button" title="重新播放（R）">重播</button>
+  <label class="sr-only" for="seek">动画进度</label>
+  <input id="seek" type="range" min="0" max="2400" step="1" value="0">
+  <output id="time" for="seek">0.00 / 2.40 秒</output>
+  <label class="sr-only" for="speed">播放速度</label>
+  <select id="speed" aria-label="播放速度">
+   <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
+   <option value="1" selected>1×</option><option value="2">2×</option>
+  </select>
+  <button id="full" type="button" title="全屏（F）">全屏</button>
+ </div>
+ <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+</main>
+
+<script>
+ 'use strict';
+
+ // ===== 基础配置 =====
+ const W = 1280, H = 720, DURATION = 2400;
+
+ // 动画时间表，单位为毫秒；集中修改这里即可调整各阶段节奏。
+ const MOTION = {
+  field: { start: 0, duration: 600 }, reveal: { start: 70, duration: 470 },
+  portrait: { start: 200, duration: 900 }, texture: { start: 340, duration: 1300 },
+  logo: { start: 350, duration: 650 },
+  label: { start: 950, duration: 380 }, name: { start: 1070, duration: 350, stagger: 30 },
+  rule: { start: 1300, duration: 320 }, score: { start: 1450, duration: 520 },
+  unit: { start: 1530, duration: 420 }, settle: { start: 2050, duration: 350 }
+ };
+
+ // 三组贝塞尔缓动曲线，分别用于移动、揭示和强调动画。
+ const CURVES = { travel: [.25, .1, .25, 1], reveal: [.16, 1, .3, 1], impact: [.4, 0, .2, 1] };
+ const clamp = t => Math.max(0, Math.min(1, t));
+
+ function bezier(t, [x1, y1, x2, y2]) {
+  if (t <= 0) return 0;
+  if (t >= 1) return 1;
+
+  const at = (u, a, b) => 3 * (1 - u) * (1 - u) * u * a + 3 * (1 - u) * u * u * b + u * u * u;
+  let lo = 0, hi = 1;
+
+  for (let i = 0; i < 20; i++) {
+   const m = (lo + hi) / 2;
+   if (at(m, x1, x2) < t) lo = m;
+   else hi = m;
+  }
+  return at((lo + hi) / 2, y1, y2);
+ }
+
+ // 将当前时间转换为 0～1 的动画进度，并应用缓动。
+ const phase = (ms, c) => clamp((ms - c.start) / c.duration);
+ const eased = (ms, c, curve = CURVES.reveal) => bezier(phase(ms, c), curve);
+ const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+ const $ = id => document.getElementById(id);
+ const app = $('app'), stage = $('stage'), viewport = $('viewport');
+ const nameChars = [...$('player-name').children];
+
+ // 播放状态。position 表示当前毫秒位置，rate 表示播放倍速。
+ let position = 0, playing = false, rate = 1, lastFrame = null, frame = 0, hideTimer, ready = false;
+
+ // 根据时间位置更新所有动画图层的样式。
+ function render(ms) {
+  position = Math.max(0, Math.min(DURATION, Number(ms) || 0));
+  const still = reducedMotion.matches;
+  const motion = (c, curve = CURVES.reveal) => still ? 1 : eased(position, c, curve);
+
+  const field = motion(MOTION.field, CURVES.travel);
+  $('red-plane').style.transform = `translate3d(${(1 - field) * 900}px,0,0)`;
+  $('red-edge').style.transform = `translate3d(${(1 - field) * 920}px,0,0)`;
+
+  const reveal = motion(MOTION.reveal, CURVES.travel), cut = 1410 - reveal * 1650;
+  $('portrait-reveal').style.clipPath =
+          `polygon(${cut + 110}px 0,1500px 0,1500px 900px,${cut - 110}px 900px)`;
+
+  const portrait = motion(MOTION.portrait, CURVES.travel);
+  $('portrait-travel').style.transform = `translate3d(${-64 * (1 - portrait)}px,${-12 * (1 - portrait)}px,0)`;
+  $('portrait-zoom').style.transform = `scale(${1 + .34 * (1 - portrait)})`;
+
+  const texture = motion(MOTION.texture, CURVES.travel);
+  $('texture-wrap').style.opacity = .55 * texture;
+  $('texture-wrap').style.transform = `translate3d(${45 * (1 - texture)}px,0,0)`;
+
+  $('team-mark').style.opacity = .09 * motion(MOTION.logo);
+
+  const label = motion(MOTION.label);
+  $('eyebrow').style.opacity = label;
+  $('eyebrow').style.transform = `translate3d(0,${16 * (1 - label)}px,0)`;
+
+  nameChars.forEach((el, i) => {
+   const timing = { start: MOTION.name.start + i * MOTION.name.stagger, duration: MOTION.name.duration };
+   const p = motion(timing);
+   el.style.transform = `translate3d(0,${90 * (1 - p)}px,0)`;
+   el.style.opacity = still ? 1 : clamp(phase(position, timing) * 3);
+  });
+
+  $('name-rule').style.transform = `scaleX(${motion(MOTION.rule)})`;
+
+  const score = motion(MOTION.score, CURVES.impact);
+  $('score-row').style.transform = `translate3d(0,${68 * (1 - score)}px,0) scale(${1 + .08 * (1 - score)})`;
+  $('score-row').style.opacity = still ? 1 : clamp(phase(position, MOTION.score) * 3.5);
+
+  const unit = motion(MOTION.unit);
+  $('score-unit').style.opacity = still ? 1 : clamp(phase(position, MOTION.unit) * 2.5);
+  $('score-unit').style.transform = `translate3d(${18 * (1 - unit)}px,0,0)`;
+
+  const settle = motion(MOTION.settle);
+  $('foot-rule').style.opacity = .24 * settle;
+  $('foot-rule').style.transform = `scaleX(${settle})`;
+
+  $('seek').value = position;
+  $('time').value = `${(position / 1000).toFixed(2)} / 2.40 秒`;
+  $('seek').setAttribute('aria-valuetext', `${(position / 1000).toFixed(2)} 秒`);
+ }
+
+ // 按可用窗口空间等比缩放 1280 × 720 舞台。
+ function resize() {
+  const full = !!document.fullscreenElement;
+  const style = getComputedStyle(app);
+  const paddingX = parseFloat(style.paddingLeft) + parseFloat(style.paddingRight);
+  const paddingY = parseFloat(style.paddingTop) + parseFloat(style.paddingBottom);
+  const controls = full ? 0 : $('controls').getBoundingClientRect().height + parseFloat(style.gap || 0);
+  const scale = Math.max(
+          .01,
+          Math.min((app.clientWidth - paddingX) / W, (app.clientHeight - paddingY - controls) / H)
+  );
+
+  viewport.style.width = W * scale + 'px';
+  viewport.style.height = H * scale + 'px';
+  stage.style.transform = `scale(${scale})`;
+ }
+
+ // 同步播放按钮的文字和无障碍标签。
+ function buttonState() {
+  $('play').textContent = playing ? '暂停' : '播放';
+  $('play').setAttribute('aria-label', playing ? '暂停动画' : '播放动画');
+ }
+
+ // requestAnimationFrame 主循环。
+ function tick(now) {
+  if (!playing) return;
+  if (document.hidden) {
+   lastFrame = null;
+   frame = requestAnimationFrame(tick);
+   return;
+  }
+
+  if (lastFrame !== null) render(position + (now - lastFrame) * rate);
+  lastFrame = now;
+
+  if (position >= DURATION) {
+   playing = false;
+   lastFrame = null;
+   buttonState();
+   return;
+  }
+  frame = requestAnimationFrame(tick);
+ }
+
+ // 暂停播放并清理当前帧状态。
+ function pause() {
+  playing = false;
+  cancelAnimationFrame(frame);
+  lastFrame = null;
+  buttonState();
+ }
+
+ // 开始播放；restart 为 true 时从头播放。
+ function play(restart = false) {
+  if (!ready) return;
+  pause();
+  if (restart || position >= DURATION) render(0);
+  playing = true;
+  buttonState();
+  frame = requestAnimationFrame(tick);
+ }
+
+ // ===== 控件事件 =====
+ $('play').addEventListener('click', () => playing ? pause() : play());
+ $('replay').addEventListener('click', () => play(true));
+ $('seek').addEventListener('input', e => { pause(); render(Number(e.target.value)); buttonState(); });
+ $('speed').addEventListener('change', e => { rate = Number(e.target.value); lastFrame = null; });
+
+ // 切换浏览器全屏状态。
+ async function fullscreen() {
+  try {
+   if (document.fullscreenElement) await document.exitFullscreen();
+   else if (app.requestFullscreen) await app.requestFullscreen();
+   else $('status').textContent = '当前浏览器不支持全屏';
+  } catch {
+   $('status').textContent = '当前浏览器未允许全屏';
+  }
+ }
+
+ $('full').addEventListener('click', fullscreen);
+ document.addEventListener('fullscreenchange', () => {
+  $('full').textContent = document.fullscreenElement ? '退出全屏' : '全屏';
+  resize();
+  showControls();
+ });
+
+ // 全屏模式下短暂显示控制栏。
+ function showControls() {
+  app.classList.add('controls-visible');
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => app.classList.remove('controls-visible'), 2200);
+ }
+
+ app.addEventListener('pointermove', showControls);
+ app.addEventListener('pointerdown', showControls);
+
+ // 键盘快捷键：空格播放/暂停，R 重播，F 全屏，方向键微调进度。
+ document.addEventListener('keydown', e => {
+  if (/INPUT|SELECT|BUTTON/.test(e.target.tagName)) return;
+
+  if (e.code === 'Space') {
+   e.preventDefault();
+   playing ? pause() : play();
+  } else if (e.key.toLowerCase() === 'r') {
+   play(true);
+  } else if (e.key.toLowerCase() === 'f') {
+   fullscreen();
+  } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+   e.preventDefault();
+   pause();
+   render(position + (e.key === 'ArrowRight' ? 100 : -100));
+   buttonState();
+  }
+  showControls();
+ });
+
+ // 页面切到后台时重置帧时间，避免切回页面后动画瞬间跳帧。
+ document.addEventListener('visibilitychange', () => { lastFrame = null; });
+ window.addEventListener('resize', resize);
+ new ResizeObserver(resize).observe($('controls'));
+
+ // 对外控制接口，时间单位为毫秒：播放、暂停、重播和跳转进度。
+ window.pptAnimation = {
+  play: () => play(),
+  pause,
+  replay: () => play(true),
+  seek: ms => { pause(); render(Number(ms) || 0); buttonState(); },
+  get currentTime() { return position; },
+  get duration() { return DURATION; }
+ };
+
+ // ===== 初始化 =====
+ render(0);
+ resize();
+ $('play').disabled = true;
+ $('replay').disabled = true;
+ $('seek').disabled = true;
+
+ // 等待自定义字体和图片资源完成解码后再开始动画。
+ const fontReady = Promise.all([
+  document.fonts.load('900 76px MatchTitle', '月度最佳选手二阶堂亚树'),
+  document.fonts.load('800 228px MatchScore', '+105.9 PT')
+ ]);
+
+ Promise.all([...document.images].map(im => im.decode())).then(() => fontReady).then(() => {
+  ready = true;
+  stage.classList.add('ready');
+  resize();
+  $('play').disabled = false;
+  $('replay').disabled = false;
+  $('seek').disabled = false;
+
+  if (reducedMotion.matches) {
+   render(DURATION);
+   buttonState();
+  } else {
+   play(true);
+  }
+ }).catch(() => {
+  ready = true;
+  stage.classList.add('ready');
+  render(DURATION);
+  buttonState();
+  $('play').disabled = false;
+  $('replay').disabled = false;
+  $('seek').disabled = false;
+  $('status').textContent = '部分素材加载失败，请完整解压并保留 assets 文件夹。';
+ });
+
+ // 系统启用“减少动态效果”时直接显示最终画面。
+ reducedMotion.addEventListener('change', () => { pause(); render(DURATION); buttonState(); });
+</script>
+</body>
+</html>
