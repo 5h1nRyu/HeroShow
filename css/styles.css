@@ -69,6 +69,23 @@
   .layer { position: absolute; pointer-events: none; }
   img { display: block; user-select: none; pointer-events: none; }
 
+  /* 独立片头：白色背景、人物前景与从人物背后穿过的巨幅标题。 */
+  #intro, #reveal-scene { inset: 0; overflow: hidden; }
+  #intro { z-index: 20; background: var(--white); }
+  #intro-title {
+   z-index: 2; top: 50%; left: 0; width: max-content;
+   color: var(--black); font-family: MatchTitle, sans-serif; font-size: 154px;
+   font-weight: 900; line-height: 1; letter-spacing: 10px; white-space: nowrap;
+   text-shadow: 8px 8px 0 var(--red); will-change: transform;
+  }
+  #intro-portrait-wrap {
+   z-index: 3; inset: 0; overflow: hidden;
+   transform-origin: 50% 100%; will-change: transform;
+  }
+  #intro-portrait {
+   position: absolute; width: 920px; height: auto; left: -37px; bottom: 0;
+  }
+
   /* 背景层：斜切红色区域、黑色边缘、半调纹理与低透明度队徽。 */
   #team-mark {
    left: -130px; top: 130px; width: 640px; opacity: 0;

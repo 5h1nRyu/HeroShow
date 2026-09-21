@@ -5,7 +5,7 @@
  <meta charset="utf-8">
  <meta name="viewport" content="width=device-width,initial-scale=1">
  <title>二阶堂亚树 · 月度最佳选手</title>
- <meta name="description" content="二阶堂亚树，月度最佳选手，+105.9 PT。红黑白选手揭晓动画。">
+ <meta name="description" content="桌上的舞姬，二阶堂亚树，月度最佳选手，+105.9 PT。红黑白选手揭晓动画。">
  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
 
  <link rel="stylesheet" href="css/styles.css">
@@ -14,35 +14,44 @@
 <!-- 页面主体：动画视口和播放控制区 -->
 <main id="app">
  <!-- 固定宽高比的动画视口 -->
- <div id="viewport" role="img" aria-label="月度最佳选手，二阶堂亚树，积分 +105.9 PT。">
+ <div id="viewport" role="img" aria-label="桌上的舞姬，月度最佳选手二阶堂亚树，积分 +105.9 PT。">
   <div id="stage" aria-hidden="true">
-   <!-- 背景与装饰图层 -->
-   <img id="team-mark" class="layer" src="assets/images/team-logo.png" alt="" draggable="false">
-   <div id="red-edge" class="layer"></div>
-   <div id="red-plane" class="layer"></div>
-   <div id="texture-wrap" class="layer">
-    <img id="texture" src="assets/images/halftone-background.png" alt="" draggable="false">
+   <!-- 0.5 秒独立片头：标题在人物背后横穿画面 -->
+   <div id="intro" class="layer">
+    <div id="intro-title" class="layer">桌上的舞姬</div>
+    <div id="intro-portrait-wrap" class="layer">
+     <img id="intro-portrait" src="assets/images/player.png" alt="" draggable="false">
+    </div>
    </div>
-   <!-- 人物图层 -->
-   <div id="portrait-reveal" class="layer">
-    <div id="portrait-travel" class="layer">
-     <div id="portrait-zoom">
-      <img id="portrait" src="assets/images/player.png" alt="" draggable="false">
+   <div id="reveal-scene" class="layer">
+    <!-- 背景与装饰图层 -->
+    <img id="team-mark" class="layer" src="assets/images/team-logo.png" alt="" draggable="false">
+    <div id="red-edge" class="layer"></div>
+    <div id="red-plane" class="layer"></div>
+    <div id="texture-wrap" class="layer">
+     <img id="texture" src="assets/images/halftone-background.png" alt="" draggable="false">
+    </div>
+    <!-- 人物图层 -->
+    <div id="portrait-reveal" class="layer">
+     <div id="portrait-travel" class="layer">
+      <div id="portrait-zoom">
+       <img id="portrait" src="assets/images/player.png" alt="" draggable="false">
+      </div>
      </div>
     </div>
-   </div>
-   <!-- 前景文字与装饰线 -->
-   <div id="eyebrow" class="layer">月度最佳选手</div>
-   <div id="name-mask" class="layer">
-    <div id="player-name">
-     <span>二</span><span>阶</span><span>堂</span><span>亚</span><span>树</span>
+    <!-- 前景文字与装饰线 -->
+    <div id="eyebrow" class="layer">月度最佳选手</div>
+    <div id="name-mask" class="layer">
+     <div id="player-name">
+      <span>二</span><span>阶</span><span>堂</span><span>亚</span><span>树</span>
+     </div>
     </div>
+    <div id="name-rule" class="layer"></div>
+    <div id="score-mask" class="layer">
+     <div id="score-row"><span id="score-number">+105.9</span><span id="score-unit">PT</span></div>
+    </div>
+    <div id="foot-rule" class="layer"></div>
    </div>
-   <div id="name-rule" class="layer"></div>
-   <div id="score-mask" class="layer">
-    <div id="score-row"><span id="score-number">+105.9</span><span id="score-unit">PT</span></div>
-   </div>
-   <div id="foot-rule" class="layer"></div>
   </div>
  </div>
 
@@ -51,8 +60,8 @@
   <button id="play" type="button" aria-label="暂停动画">暂停</button>
   <button id="replay" type="button" title="重新播放（R）">重播</button>
   <label class="sr-only" for="seek">动画进度</label>
-  <input id="seek" type="range" min="0" max="2400" step="1" value="0">
-  <output id="time" for="seek">0.00 / 2.40 秒</output>
+  <input id="seek" type="range" min="0" max="2900" step="1" value="0">
+  <output id="time" for="seek">0.00 / 2.90 秒</output>
   <label class="sr-only" for="speed">播放速度</label>
   <select id="speed" aria-label="播放速度">
    <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
