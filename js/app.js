@@ -1,7 +1,8 @@
  'use strict';
 
  // ===== 基础配置 =====
- const W = 1280, H = 720, DURATION = 2400;
+ const W = 1280, H = 720, INTRO_DURATION = 500, REVEAL_DURATION = 2400;
+ const DURATION = INTRO_DURATION + REVEAL_DURATION;
 
  // 动画时间表，单位为毫秒；集中修改这里即可调整各阶段节奏。
  const MOTION = {
@@ -32,9 +33,6 @@
   return at((lo + hi) / 2, y1, y2);
  }
 
- // 将当前时间转换为 0～1 的动画进度，并应用缓动。
- const phase = (ms, c) => clamp((ms - c.start) / c.duration);
- const eased = (ms, c, curve = CURVES.reveal) => bezier(phase(ms, c), curve);
  const $ = id => document.getElementById(id);
  const app = $('app'), stage = $('stage'), viewport = $('viewport');
  const nameChars = [...$('player-name').children];
@@ -46,7 +44,38 @@
  // 根据时间位置更新所有动画图层的样式。
  function render(ms) {
   position = Math.max(0, Math.min(DURATION, Number(ms) || 0));
-  const motion = (c, curve = CURVES.reveal) => eased(position, c, curve);
+  const introActive = position < INTRO_DURATION;
+  $('intro').style.display = introActive ? 'block' : 'none';
+  $('reveal-scene').style.display = introActive ? 'none' : 'block';
+
+  if (introActive) {
+   const introMotion = (c, curve = CURVES.reveal) => bezier(
+           clamp((position - c.start) / c.duration), curve
+   );
+   const portraitIn = introMotion({ start: 0, duration: 360 }, CURVES.travel);
+   const portraitScale = introMotion({ start: 170, duration: 310 }, CURVES.impact);
+   $('intro-portrait-wrap').style.transform =
+           `translate3d(${-1080 * (1 - portraitIn)}px,0,0) scale(${.9 + .12 * portraitScale})`;
+
+   // 三段式位移：快速入场，经过正中时放缓，结尾刚开始再次加速。
+   let titleX;
+   if (position < 205) {
+    const p = bezier(position / 205, CURVES.travel);
+    titleX = 1370 + (470 - 1370) * p;
+   } else if (position < 430) {
+    const p = bezier((position - 205) / 225, [.22, .7, .3, 1]);
+    titleX = 470 + (255 - 470) * p;
+   } else {
+    const p = bezier((position - 430) / 70, [.55, 0, 1, .45]);
+    titleX = 255 - 100 * p;
+   }
+   $('intro-title').style.transform = `translate3d(${titleX}px,-50%,0)`;
+  }
+
+  const revealPosition = Math.max(0, position - INTRO_DURATION);
+  const motion = (c, curve = CURVES.reveal) => bezier(
+          clamp((revealPosition - c.start) / c.duration), curve
+  );
 
   const field = motion(MOTION.field, CURVES.travel);
   $('red-plane').style.transform = `translate3d(${(1 - field) * 900}px,0,0)`;
@@ -74,17 +103,17 @@
    const timing = { start: MOTION.name.start + i * MOTION.name.stagger, duration: MOTION.name.duration };
    const p = motion(timing);
    el.style.transform = `translate3d(0,${90 * (1 - p)}px,0)`;
-   el.style.opacity = clamp(phase(position, timing) * 3);
+   el.style.opacity = clamp(((revealPosition - timing.start) / timing.duration) * 3);
   });
 
   $('name-rule').style.transform = `scaleX(${motion(MOTION.rule)})`;
 
   const score = motion(MOTION.score, CURVES.impact);
   $('score-row').style.transform = `translate3d(0,${68 * (1 - score)}px,0) scale(${1 + .08 * (1 - score)})`;
-  $('score-row').style.opacity = clamp(phase(position, MOTION.score) * 3.5);
+  $('score-row').style.opacity = clamp(((revealPosition - MOTION.score.start) / MOTION.score.duration) * 3.5);
 
   const unit = motion(MOTION.unit);
-  $('score-unit').style.opacity = clamp(phase(position, MOTION.unit) * 2.5);
+  $('score-unit').style.opacity = clamp(((revealPosition - MOTION.unit.start) / MOTION.unit.duration) * 2.5);
   $('score-unit').style.transform = `translate3d(${18 * (1 - unit)}px,0,0)`;
 
   const settle = motion(MOTION.settle);
@@ -92,7 +121,7 @@
   $('foot-rule').style.transform = `scaleX(${settle})`;
 
   $('seek').value = position;
-  $('time').value = `${(position / 1000).toFixed(2)} / 2.40 秒`;
+  $('time').value = `${(position / 1000).toFixed(2)} / 2.90 秒`;
   $('seek').setAttribute('aria-valuetext', `${(position / 1000).toFixed(2)} 秒`);
  }
 
