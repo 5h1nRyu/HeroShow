@@ -35,7 +35,6 @@
  // 将当前时间转换为 0～1 的动画进度，并应用缓动。
  const phase = (ms, c) => clamp((ms - c.start) / c.duration);
  const eased = (ms, c, curve = CURVES.reveal) => bezier(phase(ms, c), curve);
- const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
  const $ = id => document.getElementById(id);
  const app = $('app'), stage = $('stage'), viewport = $('viewport');
  const nameChars = [...$('player-name').children];
@@ -47,8 +46,7 @@
  // 根据时间位置更新所有动画图层的样式。
  function render(ms) {
   position = Math.max(0, Math.min(DURATION, Number(ms) || 0));
-  const still = reducedMotion.matches;
-  const motion = (c, curve = CURVES.reveal) => still ? 1 : eased(position, c, curve);
+  const motion = (c, curve = CURVES.reveal) => eased(position, c, curve);
 
   const field = motion(MOTION.field, CURVES.travel);
   $('red-plane').style.transform = `translate3d(${(1 - field) * 900}px,0,0)`;
@@ -76,17 +74,17 @@
    const timing = { start: MOTION.name.start + i * MOTION.name.stagger, duration: MOTION.name.duration };
    const p = motion(timing);
    el.style.transform = `translate3d(0,${90 * (1 - p)}px,0)`;
-   el.style.opacity = still ? 1 : clamp(phase(position, timing) * 3);
+   el.style.opacity = clamp(phase(position, timing) * 3);
   });
 
   $('name-rule').style.transform = `scaleX(${motion(MOTION.rule)})`;
 
   const score = motion(MOTION.score, CURVES.impact);
   $('score-row').style.transform = `translate3d(0,${68 * (1 - score)}px,0) scale(${1 + .08 * (1 - score)})`;
-  $('score-row').style.opacity = still ? 1 : clamp(phase(position, MOTION.score) * 3.5);
+  $('score-row').style.opacity = clamp(phase(position, MOTION.score) * 3.5);
 
   const unit = motion(MOTION.unit);
-  $('score-unit').style.opacity = still ? 1 : clamp(phase(position, MOTION.unit) * 2.5);
+  $('score-unit').style.opacity = clamp(phase(position, MOTION.unit) * 2.5);
   $('score-unit').style.transform = `translate3d(${18 * (1 - unit)}px,0,0)`;
 
   const settle = motion(MOTION.settle);
@@ -251,7 +249,10 @@
   document.fonts.load('800 228px MatchScore', '+105.9 PT')
  ]);
 
- Promise.all([...document.images].map(im => im.decode())).then(() => fontReady).then(() => {
+ Promise.allSettled([
+  ...[...document.images].map(im => im.decode()),
+  fontReady
+ ]).then(results => {
   ready = true;
   stage.classList.add('ready');
   resize();
@@ -259,22 +260,8 @@
   $('replay').disabled = false;
   $('seek').disabled = false;
 
-  if (reducedMotion.matches) {
-   render(DURATION);
-   buttonState();
-  } else {
-   play(true);
+  if (results.some(result => result.status === 'rejected')) {
+   $('status').textContent = '部分素材加载失败，请完整解压并保留 assets 文件夹。';
   }
- }).catch(() => {
-  ready = true;
-  stage.classList.add('ready');
-  render(DURATION);
-  buttonState();
-  $('play').disabled = false;
-  $('replay').disabled = false;
-  $('seek').disabled = false;
-  $('status').textContent = '部分素材加载失败，请完整解压并保留 assets 文件夹。';
+  play(true);
  });
-
- // 系统启用“减少动态效果”时直接显示最终画面。
- reducedMotion.addEventListener('change', () => { pause(); render(DURATION); buttonState(); });
