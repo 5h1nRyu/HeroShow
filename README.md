@@ -27,7 +27,12 @@ python3 -m http.server 8000
 .
 ├── index.html          # 页面结构
 ├── css/styles.css      # 页面和动画样式
-├── js/app.js           # 动画及播放控制逻辑
+├── js/
+│   ├── animation-config.js # 带中文说明的动画参数
+│   ├── animation.js        # 动画画面渲染
+│   ├── player.js           # 播放时间轴
+│   ├── controls.js         # 控件、快捷键和全屏交互
+│   └── app.js              # 页面初始化及模块装配
 └── assets/
     ├── favicon.svg
     ├── fonts/          # 字体及字体许可证
