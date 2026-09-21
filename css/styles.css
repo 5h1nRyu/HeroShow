@@ -69,6 +69,31 @@
   .layer { position: absolute; pointer-events: none; }
   img { display: block; user-select: none; pointer-events: none; }
 
+  /* 独立片头：红黑斜切背景、人物前景与从人物背后穿过的巨幅标题。 */
+  #intro, #reveal-scene { inset: 0; overflow: hidden; }
+  #intro { z-index: 20; background: var(--black); }
+  #intro-red {
+   inset: -100px -120px; background: var(--red);
+   clip-path: polygon(0 0, 72% 0, 52% 100%, 0 100%);
+  }
+  #intro-slash {
+   inset: -100px -120px; background: #050505;
+   clip-path: polygon(70% 0, 74% 0, 54% 100%, 50% 100%);
+  }
+  #intro-title {
+   z-index: 2; top: 50%; left: 0; width: max-content;
+   color: var(--white); font-family: MatchTitle, sans-serif; font-size: 154px;
+   font-weight: 900; line-height: 1; letter-spacing: 10px; white-space: nowrap;
+   text-shadow: 8px 8px 0 #090909; will-change: transform;
+  }
+  #intro-portrait-wrap {
+   z-index: 3; left: 190px; bottom: -2px; width: 920px; height: 724px;
+   overflow: hidden; transform-origin: 50% 100%; will-change: transform;
+  }
+  #intro-portrait {
+   position: absolute; width: 920px; height: 776px; left: -250px; bottom: 0;
+  }
+
   /* 背景层：斜切红色区域、黑色边缘、半调纹理与低透明度队徽。 */
   #team-mark {
    left: -130px; top: 130px; width: 640px; opacity: 0;
