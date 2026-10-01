@@ -36,6 +36,7 @@ export function createAnimation(config) {
   scoreUnit: element('score-unit'),
   footRule: element('foot-rule')
  };
+
  const nameChars = [...element('player-name').children];
 
  const phase = (ms, section) => clamp((ms - section.start) / section.duration);
@@ -55,7 +56,10 @@ export function createAnimation(config) {
 
   const portrait = motion(timing.portrait, curves.travel);
   layers.portraitTravel.style.transform = `translate3d(${effects.portrait.offsetX * (1 - portrait)}px,${effects.portrait.offsetY * (1 - portrait)}px,0)`;
-  layers.portraitZoom.style.transform = `scale(${1 + effects.portrait.scaleAmount * (1 - portrait)})`;
+
+  const portraitScale = effects.portrait.startScale
+      + (effects.portrait.finalScale - effects.portrait.startScale) * portrait;
+  layers.portraitZoom.style.transform = `scale(${portraitScale})`;
 
   const texture = motion(timing.texture, curves.travel);
   layers.textureWrap.style.opacity = effects.texture.maxOpacity * texture;

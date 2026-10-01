@@ -43,7 +43,8 @@ export const ANIMATION_CONFIG = {
   portrait: {
    offsetX: -64, // 人物入场前的水平偏移；负值表示向左。
    offsetY: -12, // 人物入场前的垂直偏移；负值表示向上。
-   scaleAmount: .34 // 人物入场前相对于最终尺寸额外放大的比例。
+   startScale: 1.34, // 人物入场开始时的缩放比例。
+   finalScale: .87 // 人物完全入场后的最终缩放比例。
   },
   texture: {
    maxOpacity: .55, // 半调纹理完全入场后的最大透明度。
