@@ -8,6 +8,10 @@ export const ANIMATION_CONFIG = {
   duration: 2400 // 完整动画的总时长。
  },
 
+ text: {
+  enabled: true // 是否显示标题、队名、积分等前景文字。
+ },
+
  timing: {
   field: { start: 0, duration: 900 }, // 红色背景和黑色边缘的入场时机与时长。
   reveal: { start: 70, duration: 705 }, // 人物斜切遮罩的揭示时机与时长。

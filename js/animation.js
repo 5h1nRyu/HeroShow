@@ -39,6 +39,11 @@ export function createAnimation(config) {
 
  const nameChars = [...element('player-name').children];
 
+ const textVisible = config.text?.enabled !== false;
+ [layers.eyebrow, element('name-mask'), layers.nameRule, element('score-mask')].forEach(textLayer => {
+  textLayer.style.display = textVisible ? '' : 'none';
+ });
+
  const phase = (ms, section) => clamp((ms - section.start) / section.duration);
  const eased = (ms, section, curve = curves.reveal) => bezier(phase(ms, section), curve);
 
