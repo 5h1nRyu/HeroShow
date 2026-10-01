@@ -9,17 +9,17 @@ export const ANIMATION_CONFIG = {
  },
 
  timing: {
-  field: { start: 0, duration: 600 }, // 红色背景和黑色边缘的入场时机与时长。
-  reveal: { start: 70, duration: 470 }, // 人物斜切遮罩的揭示时机与时长。
-  portrait: { start: 200, duration: 900 }, // 人物位移和缩放的开始时机与时长。
-  texture: { start: 340, duration: 1300 }, // 半调纹理淡入和移动的开始时机与时长。
-  logo: { start: 350, duration: 650 }, // 队徽淡入的开始时机与时长。
-  label: { start: 950, duration: 380 }, // “月度最佳选手”标签的入场时机与时长。
-  name: { start: 1070, duration: 350, stagger: 30 }, // 姓名首字入场时间、单字时长及逐字间隔。
-  rule: { start: 1300, duration: 320 }, // 姓名下方短线的展开时机与时长。
-  score: { start: 1450, duration: 520 }, // 积分数字的入场时机与时长。
-  unit: { start: 1530, duration: 420 }, // 积分单位“PT”的入场时机与时长。
-  settle: { start: 2050, duration: 350 } // 底部装饰线的出现时机与时长。
+  field: { start: 0, duration: 900 }, // 红色背景和黑色边缘的入场时机与时长。
+  reveal: { start: 70, duration: 705 }, // 人物斜切遮罩的揭示时机与时长。
+  portrait: { start: 200, duration: 1350 }, // 人物位移和缩放的开始时机与时长。
+  texture: { start: 340, duration: 1950 }, // 半调纹理淡入和移动的开始时机与时长。
+  logo: { start: 350, duration: 975 }, // 队徽淡入的开始时机与时长。
+  label: { start: 950, duration: 570 }, // “月度最佳选手”标签的入场时机与时长。
+  name: { start: 1070, duration: 525, stagger: 30 }, // 姓名首字入场时间、单字时长及逐字间隔。
+  rule: { start: 1300, duration: 480 }, // 姓名下方短线的展开时机与时长。
+  score: { start: 1450, duration: 780 }, // 积分数字的入场时机与时长。
+  unit: { start: 1530, duration: 630 }, // 积分单位“PT”的入场时机与时长。
+  settle: { start: 2050, duration: 525 } // 底部装饰线的出现时机与时长。
  },
 
  curves: {
@@ -41,10 +41,11 @@ export const ANIMATION_CONFIG = {
    boundaryY: 900 // 人物遮罩下边界，需覆盖整个舞台。
   },
   portrait: {
-   offsetX: -64, // 人物入场前的水平偏移；负值表示向左。
-   offsetY: -12, // 人物入场前的垂直偏移；负值表示向上。
+   offsetX: -64, // 人物入场开始时的水平偏移。
+   offsetY: -12, // 人物入场开始时的垂直偏移。
+   finalOffsetX: -50, // 人物完全入场后最终向左移动的距离。
    startScale: 1.34, // 人物入场开始时的缩放比例。
-   finalScale: .87 // 人物完全入场后的最终缩放比例。
+   finalScale: .88 // 人物完全入场后的最终缩放比例。
   },
   texture: {
    maxOpacity: .55, // 半调纹理完全入场后的最大透明度。

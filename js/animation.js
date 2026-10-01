@@ -55,7 +55,12 @@ export function createAnimation(config) {
   layers.portraitReveal.style.clipPath = `polygon(${cut + effects.reveal.bevel}px 0,${effects.reveal.boundaryX}px 0,${effects.reveal.boundaryX}px ${effects.reveal.boundaryY}px,${cut - effects.reveal.bevel}px ${effects.reveal.boundaryY}px)`;
 
   const portrait = motion(timing.portrait, curves.travel);
-  layers.portraitTravel.style.transform = `translate3d(${effects.portrait.offsetX * (1 - portrait)}px,${effects.portrait.offsetY * (1 - portrait)}px,0)`;
+
+  const portraitX = effects.portrait.offsetX
+      + (effects.portrait.finalOffsetX - effects.portrait.offsetX) * portrait;
+
+  layers.portraitTravel.style.transform =
+      `translate3d(${portraitX}px,${effects.portrait.offsetY * (1 - portrait)}px,0)`;
 
   const portraitScale = effects.portrait.startScale
       + (effects.portrait.finalScale - effects.portrait.startScale) * portrait;
