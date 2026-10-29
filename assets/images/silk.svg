@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+<defs>
+ <linearGradient id="fold" x1="0" y1="0" x2=".35" y2="1" gradientUnits="objectBoundingBox"><stop stop-color="#08090d"/><stop offset=".3" stop-color="#171721"/><stop offset=".46" stop-color="#46404d"/><stop offset=".49" stop-color="#a397a5"/><stop offset=".53" stop-color="#30303e"/><stop offset=".66" stop-color="#111119"/><stop offset="1" stop-color="#08090d"/></linearGradient>
+ <linearGradient id="edge" x2="0" y2="1"><stop stop-color="#08090d"/><stop offset=".3" stop-color="#20202b"/><stop offset=".49" stop-color="#736775"/><stop offset=".55" stop-color="#252430"/><stop offset="1" stop-color="#08090d"/></linearGradient>
+ <radialGradient id="shade"><stop stop-color="#08090d" stop-opacity="0"/><stop offset="1" stop-color="#08090d" stop-opacity=".8"/></radialGradient>
+</defs>
+<path fill="#08090d" d="M0 0h1920v1080H0z"/>
+<g opacity=".73">
+<path fill="url(#fold)" d="M-290 1090C40 250 730 1240 1040 570S1710 215 2160 700L2100 1190H-290z"/>
+<path fill="url(#edge)" d="M-160 1020C130 720 370 740 610 820S970 1120 1330 910 1590 700 2040 770L2020 1140H-160z"/>
+<path fill="url(#fold)" d="M-160 1150C200 680 550 1130 820 930S1230 480 1650 420 1900 470 2150 250L2090 1140H-160z"/>
+<path fill="url(#edge)" d="M740 1190C1070 890 1170 1130 1370 860S1760 590 2070 710L2050 1190z"/>
+</g>
+<path fill="url(#shade)" d="M0 0h1920v1080H0z"/>
+</svg>

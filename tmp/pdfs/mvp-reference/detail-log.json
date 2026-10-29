@@ -1,0 +1,66 @@
+[
+  {
+    "file": "detail-000.png",
+    "before": {
+      "paused": false,
+      "rate": 0.5,
+      "ready": 4,
+      "rect": {
+        "height": 412,
+        "width": 732,
+        "x": 76.33333587646484,
+        "y": -28
+      },
+      "time": 2999.628995
+    },
+    "after": 3000.080622
+  },
+  {
+    "file": "detail-001.png",
+    "before": {
+      "paused": false,
+      "rate": 0.5,
+      "ready": 4,
+      "rect": {
+        "height": 412,
+        "width": 732,
+        "x": 76.33333587646484,
+        "y": -28
+      },
+      "time": 3000.23155
+    },
+    "after": 3000.717305
+  },
+  {
+    "file": "detail-002.png",
+    "before": {
+      "paused": false,
+      "rate": 0.5,
+      "ready": 4,
+      "rect": {
+        "height": 412,
+        "width": 732,
+        "x": 76.33333587646484,
+        "y": -28
+      },
+      "time": 3000.797646
+    },
+    "after": 3001.190693
+  },
+  {
+    "file": "detail-003.png",
+    "before": {
+      "paused": false,
+      "rate": 0.5,
+      "ready": 4,
+      "rect": {
+        "height": 412,
+        "width": 732,
+        "x": 76.33333587646484,
+        "y": -28
+      },
+      "time": 3001.359579
+    },
+    "after": 3003.017138
+  }
+]

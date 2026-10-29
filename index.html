@@ -1,68 +1,64 @@
 <!doctype html>
 <html lang="zh-CN">
 <head>
- <!-- 页面基础信息与资源声明 -->
- <meta charset="utf-8">
- <meta name="viewport" content="width=device-width,initial-scale=1">
- <title>二阶堂亚树 · 月度最佳选手</title>
- <meta name="description" content="二阶堂亚树，月度最佳选手，+105.9 PT。红黑白选手揭晓动画。">
- <link rel="icon" type="image/svg+xml" href="assets/favicon.svg">
-
- <link rel="stylesheet" href="css/styles.css">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>角川樱花骑士 · 九月队伍积分冠军</title>
+  <meta name="description" content="九月队伍积分冠军，角川樱花骑士，+197.2 PT。" />
+  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
-<!-- 页面主体：动画视口和播放控制区 -->
-<main id="app">
- <!-- 固定宽高比的动画视口 -->
- <div id="viewport" role="img" aria-label="月度最佳选手，二阶堂亚树，积分 +105.9 PT。">
-  <div id="stage" aria-hidden="true">
-   <!-- 背景与装饰图层 -->
-   <img id="team-mark" class="layer" src="assets/images/team-logo.png" alt="" draggable="false">
-   <div id="red-edge" class="layer"></div>
-   <div id="red-plane" class="layer"></div>
-   <div id="texture-wrap" class="layer">
-    <img id="texture" src="assets/images/halftone-background.png" alt="" draggable="false">
-   </div>
-   <!-- 人物图层 -->
-   <div id="portrait-reveal" class="layer">
-    <div id="portrait-travel" class="layer">
-     <div id="portrait-zoom">
-      <img id="portrait" src="assets/images/player.png" alt="" draggable="false">
-     </div>
+  <main id="app">
+    <div id="viewport" role="img" aria-label="九月队伍积分冠军，角川樱花骑士，+197.2 PT。">
+      <div id="stage" aria-hidden="true">
+        <section id="board" class="scene board">
+          <div id="board-field" class="instrument-field"></div>
+          <div id="photo-panel" class="photo-panel"><div class="photo-texture"></div></div>
+          <div id="header" class="board-header">
+            <div id="label-mask" class="label-mask"><div id="eyebrow"></div></div>
+          </div>
+          <div id="identity" class="identity"><div class="identity-mark"><img id="team-logo" alt="" draggable="false" /></div></div>
+          <h1 id="team-name" class="team-name"></h1>
+          <div id="score-panel" class="score-panel">
+            <div class="score-caption-mask"><div id="score-caption"></div></div>
+            <div class="score-mask"><div id="score-row"><span id="score-number"></span><span id="score-unit"></span></div></div>
+          </div>
+          <div id="portrait-reveal" class="portrait-reveal"><div id="portrait-motion" class="portrait-motion"><img id="portrait" alt="" draggable="false" /></div></div>
+          <section id="metrics-panel" class="metrics-panel">
+            <div id="metrics-note" class="metrics-note">示例数据 · 待替换</div>
+            <div id="metrics" class="metrics"></div>
+          </section>
+        </section>
+        <section id="reveal" class="scene reveal">
+          <div id="reveal-field" class="instrument-field"></div>
+          <div id="reveal-name" class="reveal-name"></div>
+        </section>
+        <section id="bridge" class="scene bridge">
+          <div class="bridge-slices"><div class="wipe-slice"></div><div class="wipe-slice"></div><div class="wipe-slice"></div><div class="wipe-slice"></div><div class="wipe-slice"></div></div>
+        </section>
+        <div class="grain"></div>
+      </div>
     </div>
-   </div>
-   <!-- 前景文字与装饰线 -->
-   <div id="eyebrow" class="layer">九月队伍积分冠军</div>
-   <div id="name-mask" class="layer">
-    <div id="player-name">
-     <span>角</span><span>川</span><span>樱</span><span>花</span><span>骑</span><span>士</span>
+    <div id="controls" aria-label="动画播放控制" aria-hidden="true">
+      <div class="transport">
+        <button id="play" type="button" disabled>播放</button>
+        <button id="replay" type="button" title="重新播放（R）" disabled>重播</button>
+        <label class="sr-only" for="seek">动画进度</label>
+        <input id="seek" type="range" min="0" max="6860.1" step="0.1" value="0" disabled />
+        <output id="time" for="seek"></output>
+        <label class="sr-only" for="speed">播放速度</label>
+        <select id="speed" aria-label="播放速度"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
+        <button id="full" type="button" title="全屏（F）">全屏</button>
+      </div>
+      <div class="chapters" aria-label="动画阶段">
+        <button type="button" data-chapter="0">主角亮相 <small>00.00</small></button>
+        <button type="button" data-chapter="443.1">亮场转接 <small>00.44</small></button>
+        <button type="button" data-chapter="1860.1">冠军展示 <small>01.86</small></button>
+      </div>
     </div>
-   </div>
-   <div id="name-rule" class="layer"></div>
-   <div id="score-mask" class="layer">
-    <div id="score-row"><span id="score-number">+197.2</span><span id="score-unit">PT</span></div>
-   </div>
-   <div id="foot-rule" class="layer"></div>
-  </div>
- </div>
-
- <!-- 播放控制区 -->
- <div id="controls" aria-label="动画播放控制">
-  <button id="play" type="button" aria-label="暂停动画">暂停</button>
-  <button id="replay" type="button" title="重新播放（R）">重播</button>
-  <label class="sr-only" for="seek">动画进度</label>
-  <input id="seek" type="range" min="0" max="2400" step="1" value="0">
-  <output id="time" for="seek">0.00 / 2.40 秒</output>
-  <label class="sr-only" for="speed">播放速度</label>
-  <select id="speed" aria-label="播放速度">
-   <option value="0.25">0.25×</option><option value="0.5">0.5×</option>
-   <option value="1" selected>1×</option><option value="2">2×</option>
-  </select>
-  <button id="full" type="button" title="全屏（F）">全屏</button>
- </div>
- <div id="status" class="sr-only" role="status" aria-live="polite"></div>
-</main>
-
-<script type="module" src="js/app.js"></script>
+    <div id="status" class="sr-only" role="status" aria-live="polite"></div>
+  </main>
+  <script type="module" src="js/app.js"></script>
 </body>
 </html>

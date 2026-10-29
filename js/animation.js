@@ -1,111 +1,73 @@
-'use strict';
+const clamp = (x) => Math.max(0, Math.min(1, x));
+const outCubic = (x) => 1 - (1 - x) ** 3;
+const outQuint = (x) => 1 - (1 - x) ** 5;
+const inOutCubic = (x) => x < 0.5 ? 4 * x ** 3 : 1 - (-2 * x + 2) ** 3 / 2;
+const mix = (a, b, p) => a + (b - a) * p;
 
-const clamp = value => Math.max(0, Math.min(1, value));
-
-function bezier(t, [x1, y1, x2, y2]) {
- if (t <= 0) return 0;
- if (t >= 1) return 1;
-
- const at = (u, a, b) => 3 * (1 - u) * (1 - u) * u * a + 3 * (1 - u) * u * u * b + u * u * u;
- let lo = 0, hi = 1;
-
- for (let i = 0; i < 20; i++) {
-  const middle = (lo + hi) / 2;
-  if (at(middle, x1, x2) < t) lo = middle;
-  else hi = middle;
- }
- return at((lo + hi) / 2, y1, y2);
-}
-
-// 创建只关心“指定时间画面状态”的动画渲染器，不包含任何播放控制。
+// 所有场景和遮罩都从绝对时间求值，任意 seek、倒放、分段导出结果相同。
 export function createAnimation(config) {
- const { duration } = config.stage;
- const { timing, curves, effects } = config;
- const element = id => document.getElementById(id);
- const layers = {
-  redPlane: element('red-plane'),
-  redEdge: element('red-edge'),
-  portraitReveal: element('portrait-reveal'),
-  portraitTravel: element('portrait-travel'),
-  portraitZoom: element('portrait-zoom'),
-  textureWrap: element('texture-wrap'),
-  teamMark: element('team-mark'),
-  eyebrow: element('eyebrow'),
-  nameRule: element('name-rule'),
-  scoreRow: element('score-row'),
-  scoreUnit: element('score-unit'),
-  footRule: element('foot-rule')
- };
-
- const nameChars = [...element('player-name').children];
-
- const textVisible = config.text?.enabled !== false;
- [layers.eyebrow, element('name-mask'), layers.nameRule, element('score-mask')].forEach(textLayer => {
-  textLayer.style.display = textVisible ? '' : 'none';
- });
-
- const phase = (ms, section) => clamp((ms - section.start) / section.duration);
- const eased = (ms, section, curve = curves.reveal) => bezier(phase(ms, section), curve);
-
- function render(ms) {
-  const position = Math.max(0, Math.min(duration, Number(ms) || 0));
-  const motion = (section, curve = curves.reveal) => eased(position, section, curve);
-
-  const field = motion(timing.field, curves.travel);
-  layers.redPlane.style.transform = `translate3d(${(1 - field) * effects.field.planeOffsetX}px,0,0)`;
-  layers.redEdge.style.transform = `translate3d(${(1 - field) * effects.field.edgeOffsetX}px,0,0)`;
-
-  const reveal = motion(timing.reveal, curves.travel);
-  const cut = effects.reveal.startX - reveal * effects.reveal.travelX;
-  layers.portraitReveal.style.clipPath = `polygon(${cut + effects.reveal.bevel}px 0,${effects.reveal.boundaryX}px 0,${effects.reveal.boundaryX}px ${effects.reveal.boundaryY}px,${cut - effects.reveal.bevel}px ${effects.reveal.boundaryY}px)`;
-
-  const portrait = motion(timing.portrait, curves.travel);
-
-  const portraitX = effects.portrait.offsetX
-      + (effects.portrait.finalOffsetX - effects.portrait.offsetX) * portrait;
-
-  layers.portraitTravel.style.transform =
-      `translate3d(${portraitX}px,${effects.portrait.offsetY * (1 - portrait)}px,0)`;
-
-  const portraitScale = effects.portrait.startScale
-      + (effects.portrait.finalScale - effects.portrait.startScale) * portrait;
-  layers.portraitZoom.style.transform = `scale(${portraitScale})`;
-
-  const texture = motion(timing.texture, curves.travel);
-  layers.textureWrap.style.opacity = effects.texture.maxOpacity * texture;
-  layers.textureWrap.style.transform = `translate3d(${effects.texture.offsetX * (1 - texture)}px,0,0)`;
-  layers.teamMark.style.opacity = effects.logo.maxOpacity * motion(timing.logo);
-
-  const label = motion(timing.label);
-  layers.eyebrow.style.opacity = label;
-  layers.eyebrow.style.transform = `translate3d(0,${effects.label.offsetY * (1 - label)}px,0)`;
-
-  nameChars.forEach((character, index) => {
-   const characterTiming = {
-    start: timing.name.start + index * timing.name.stagger,
-    duration: timing.name.duration
-   };
-   const progress = motion(characterTiming);
-   character.style.transform = `translate3d(0,${effects.name.offsetY * (1 - progress)}px,0)`;
-   character.style.opacity = clamp(phase(position, characterTiming) * effects.name.fadeMultiplier);
-  });
-
-  layers.nameRule.style.transform = `scaleX(${motion(timing.rule)})`;
-
-  const score = motion(timing.score, curves.impact);
-  layers.scoreRow.style.transform = `translate3d(0,${effects.score.offsetY * (1 - score)}px,0) scale(${1 + effects.score.scaleAmount * (1 - score)})`;
-  layers.scoreRow.style.opacity = clamp(phase(position, timing.score) * effects.score.fadeMultiplier);
-
-  const unit = motion(timing.unit);
-  layers.scoreUnit.style.opacity = clamp(phase(position, timing.unit) * effects.unit.fadeMultiplier);
-  layers.scoreUnit.style.transform = `translate3d(${effects.unit.offsetX * (1 - unit)}px,0,0)`;
-
-  const settle = motion(timing.settle);
-  layers.footRule.style.opacity = effects.footRule.maxOpacity * settle;
-  layers.footRule.style.transform = `scaleX(${settle})`;
-
-  return position;
- }
-
- return { render, duration };
+  const ids = ["board", "board-field", "reveal", "reveal-name", "reveal-field", "bridge", "photo-panel", "portrait-reveal", "portrait-motion", "identity", "team-logo", "eyebrow", "header", "score-caption", "score-row", "score-unit"];
+  const el = Object.fromEntries(ids.map((id) => [id, document.getElementById(id)]));
+  const glyphs = [...document.querySelectorAll(".name-glyph")];
+  const metrics = [...document.querySelectorAll(".metric-body")];
+  const slices = [...document.querySelectorAll(".wipe-slice")];
+  const { timing, layout, ambient } = config;
+  const phase = (time, section) => clamp((time - section.start) / section.duration);
+  const show = (element, visible) => { element.style.visibility = visible ? "visible" : "hidden"; };
+  function render(ms) {
+    const time = Math.max(0, Math.min(config.stage.duration, Number(ms) || 0));
+    const motion = (section, curve = outCubic) => curve(phase(time, section));
+    // 拼合遮满时只切换底层背景，冠军元素等转场完全退场后再入场。
+    const sceneSwitch = timing.bridge.start + timing.bridge.enter + timing.bridge.pause;
+    show(el.reveal, time < sceneSwitch);
+    show(el.bridge, time >= timing.bridge.start && time < timing.bridge.start + timing.bridge.duration);
+    show(el.board, time >= sceneSwitch);
+    const intro = clamp(time / timing.bridge.start);
+    // 起点与终点各保留半行在画面中，全程匀速左移，不做尾部缓停。
+    const flight = phase(time, timing.introText);
+    const textWidth = Number(el["reveal-name"].dataset.textWidth) || 2850;
+    el["reveal-name"].style.transform = `translateX(${mix(config.stage.width - textWidth / 2, -textWidth / 2, flight)}px)`;
+    el["reveal-field"].style.transform = `translateX(${-intro * 35}px) scale(1.08)`;
+    // 交错进入但同时拼合；停顿期间所有片精确归零，之后沿原方向穿出。
+    const bridgeTime = time - timing.bridge.start;
+    const assembledAt = timing.bridge.start + timing.bridge.enter;
+    const splitAt = assembledAt + timing.bridge.pause;
+    slices.forEach((slice, index) => {
+      const delay = index * timing.bridge.stagger;
+      const entering = time >= assembledAt ? 1 : clamp((bridgeTime - delay) / (timing.bridge.enter - delay));
+      const exiting = clamp((time - splitAt - delay) / (timing.bridge.exit - delay));
+      const y = (1 - entering) * 1700 - exiting * 1700;
+      slice.style.transform = `translateY(${(index % 2 ? -1 : 1) * y}px) skewX(-22deg)`;
+    });
+    const panel = motion(timing.panel, inOutCubic);
+    el["photo-panel"].style.clipPath = `polygon(${mix(96, 12, panel)}% 0,100% 0,100% 100%,${mix(84, 0, panel)}% 100%)`;
+    el["photo-panel"].style.transform = `translateX(${(1 - panel) * 120}px)`;
+    const portrait = motion(timing.portrait, outQuint);
+    el["portrait-reveal"].style.clipPath = `inset(0 0 0 ${(1 - portrait) * 100}%)`;
+    el["portrait-motion"].style.transform = `translate(${layout.portrait.x + (1 - portrait) * 540}px,${layout.portrait.y}px) scale(${layout.portrait.scale * (1 + (1 - portrait) * 0.08)})`;
+    // 队徽在独立正方形区域内揭幕，完整等比容纳不同形状的替换素材。
+    const identity = motion(timing.identity, outQuint);
+    el.identity.style.clipPath = `inset(0 0 ${(1 - identity) * 100}% 0)`;
+    el.identity.style.transform = `translateY(${(1 - identity) * -45}px)`;
+    el["team-logo"].style.transform = `translateY(${(1 - identity) * 70}px) scale(${layout.logoScale})`;
+    const label = motion(timing.label);
+    el.eyebrow.style.transform = `translateY(${(1 - label) * 100}%)`;
+    el.header.style.clipPath = `inset(0 ${(1 - label) * 100}% 0 0)`;
+    glyphs.forEach((glyph, index) => {
+      const p = motion({ ...timing.name, start: timing.name.start + index * timing.name.stagger }, outQuint);
+      glyph.style.transform = `translateY(${(1 - p) * 115}%)`;
+    });
+    const score = motion(timing.score, outQuint);
+    el["score-caption"].style.transform = `translateY(${(1 - score) * 108}%)`;
+    el["score-row"].style.transform = `translateY(${(1 - score) * 108}%)`;
+    el["score-unit"].style.opacity = String(motion(timing.unit));
+    metrics.forEach((metric, index) => {
+      const p = motion({ ...timing.metrics, start: timing.metrics.start + index * timing.metrics.stagger }, outQuint);
+      metric.style.transform = `translateY(${(1 - p) * 115}%)`;
+    });
+    const a = ambient.enabled ? Math.sin(Math.max(0, time - ambient.start) / ambient.period * Math.PI * 2) : 0;
+    el["board-field"].style.transform = `translate(${a * ambient.travel}px,${a * 5}px) scale(1.08)`;
+    return time;
+  }
+  return { render, duration: config.stage.duration };
 }

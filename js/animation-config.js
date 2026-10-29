@@ -1,86 +1,63 @@
-'use strict';
+// 内容、构图、镜头节拍均在这里配置；时间单位为毫秒。
+const introDuration = Number((633 * 0.7).toFixed(1));
+const bridgeEnter = 330, bridgePause = 120, bridgeExit = 330;
+const boardStart = introDuration + bridgeEnter + bridgePause + bridgeExit;
+const displayStart = boardStart + 637;
+const displayDuration = 5000;
 
-// 动画制作相关参数统一放在这里；时间单位为毫秒，距离单位为像素。
 export const ANIMATION_CONFIG = {
- stage: {
-  width: 1280, // 动画舞台的设计宽度。
-  height: 720, // 动画舞台的设计高度。
-  duration: 2400 // 完整动画的总时长。
- },
-
- text: {
-  enabled: true // 是否显示标题、队名、积分等前景文字。
- },
-
- timing: {
-  field: { start: 0, duration: 900 }, // 红色背景和黑色边缘的入场时机与时长。
-  reveal: { start: 70, duration: 705 }, // 人物斜切遮罩的揭示时机与时长。
-  portrait: { start: 200, duration: 1350 }, // 人物位移和缩放的开始时机与时长。
-  texture: { start: 340, duration: 1950 }, // 半调纹理淡入和移动的开始时机与时长。
-  logo: { start: 350, duration: 975 }, // 队徽淡入的开始时机与时长。
-  label: { start: 950, duration: 570 }, // “月度最佳选手”标签的入场时机与时长。
-  name: { start: 1070, duration: 525, stagger: 30 }, // 姓名首字入场时间、单字时长及逐字间隔。
-  rule: { start: 1300, duration: 480 }, // 姓名下方短线的展开时机与时长。
-  score: { start: 1450, duration: 780 }, // 积分数字的入场时机与时长。
-  unit: { start: 1530, duration: 630 }, // 积分单位“PT”的入场时机与时长。
-  settle: { start: 2050, duration: 525 } // 底部装饰线的出现时机与时长。
- },
-
- curves: {
-  travel: [.25, .1, .25, 1], // 位移动画的三次贝塞尔缓动控制点。
-  reveal: [.16, 1, .3, 1], // 淡入和揭示动画的三次贝塞尔缓动控制点。
-  impact: [.4, 0, .2, 1] // 积分强调动画的三次贝塞尔缓动控制点。
- },
-
- effects: {
-  field: {
-   planeOffsetX: 900, // 红色背景入场前向右偏移的距离。
-   edgeOffsetX: 920 // 黑色边缘入场前向右偏移的距离。
+  content: {
+    label: "九月队伍积分冠军",
+    teamName: "角川樱花骑士",
+    scoreLabel: "月间队伍得分",
+    score: "+197.2", // 整组揭示，保持原始字符串，不做数字滚动。
+    unit: "PT",
+    portrait: "assets/images/player.png",
+    logo: "assets/images/team-logo.png",
+    // 用户提供截图：12 场，1–4 位次数为 6、2、2、2。
+    metricsArePlaceholders: false,
+    metrics: [
+      { label: "月间顺位统计", value: "6-2-2-2", unit: "", format: "placements", columns: 2 },
+      { label: "平均顺位", value: "2.00", unit: "" },
+      { label: "一位率", value: "50.00%", unit: "" },
+      { label: "避四率", value: "83.33%", unit: "" },
+    ],
   },
-  reveal: {
-   startX: 1410, // 人物揭示斜线在动画开始时的水平位置。
-   travelX: 1650, // 人物揭示斜线从右向左移动的总距离。
-   bevel: 110, // 人物揭示斜线顶部与底部的水平错位量。
-   boundaryX: 1500, // 人物遮罩右边界，需覆盖整个舞台。
-   boundaryY: 900 // 人物遮罩下边界，需覆盖整个舞台。
+  layout: {
+    nameBreakAfter: 2,
+    nameFontSize: 100,
+    scoreFontSize: 250,
+    portrait: { x: 0, y: 0, scale: 1, origin: "50% 50%" },
+    logoScale: 0.84,
   },
-  portrait: {
-   offsetX: -64, // 人物入场开始时的水平偏移。
-   offsetY: -12, // 人物入场开始时的垂直偏移。
-   finalOffsetX: -50, // 人物完全入场后最终向左移动的距离。
-   startScale: 1.34, // 人物入场开始时的缩放比例。
-   finalScale: .88 // 人物完全入场后的最终缩放比例。
+  theme: {
+    paper: "#ECE5D6",
+    ink: "#191919",
+    muted: "#78716C",
+    panel: "#F0B6CC",
+    accent: "#EF92AE", // 从原始队徽中提取的樱花粉。
+    pink: "#EF92AE",
+    data: "#201E1C",
+    dataInk: "#F5EEE4",
+    dataMuted: "#BDB2AA",
   },
-  texture: {
-   maxOpacity: .55, // 半调纹理完全入场后的最大透明度。
-   offsetX: 45 // 半调纹理入场前向右偏移的距离。
+  stage: { width: 1920, height: 1080, duration: displayStart + displayDuration },
+  text: { enabled: true },
+  timing: {
+    introText: { start: 0, duration: introDuration },
+    // 各片在同一时刻归零拼合，短暂停顿后从相反侧穿出。
+    bridge: { start: introDuration, duration: bridgeEnter + bridgePause + bridgeExit, enter: bridgeEnter, pause: bridgePause, exit: bridgeExit, stagger: 15 },
+    board: { start: boardStart, duration: 637 },
+    panel: { start: boardStart, duration: 360 },
+    identity: { start: boardStart, duration: 480 },
+    label: { start: boardStart, duration: 300 },
+    portrait: { start: boardStart + 70, duration: 500 },
+    name: { start: boardStart + 97, duration: 340, stagger: 25 },
+    score: { start: boardStart + 227, duration: 350 },
+    unit: { start: boardStart + 307, duration: 300 },
+    metrics: { start: boardStart + 197, duration: 260, stagger: 40 },
+    hold: { start: displayStart, duration: displayDuration },
   },
-  logo: {
-   maxOpacity: .09 // 队徽完全出现后的最大透明度。
-  },
-  label: {
-   offsetY: 16 // 月度标签入场前向下偏移的距离。
-  },
-  name: {
-   offsetY: 90, // 姓名单字入场前向下偏移的距离。
-   fadeMultiplier: 3 // 姓名淡入速度倍率；越大越早达到完全不透明。
-  },
-  score: {
-   offsetY: 68, // 积分行入场前向下偏移的距离。
-   scaleAmount: .08, // 积分行入场前相对于最终尺寸额外放大的比例。
-   fadeMultiplier: 3.5 // 积分数字淡入速度倍率。
-  },
-  unit: {
-   offsetX: 18, // “PT”入场前向右偏移的距离。
-   fadeMultiplier: 2.5 // “PT”淡入速度倍率。
-  },
-  footRule: {
-   maxOpacity: .24 // 底部装饰线完全出现后的最大透明度。
-  }
- },
-
- playback: {
-  keyboardSeekStep: 100, // 左右方向键每次前进或后退的时间。
-  timeDecimals: 2 // 控制栏时间显示保留的小数位数。
- }
+  ambient: { enabled: true, start: displayStart, period: 12000, travel: 16 },
+  playback: { loopStart: 0, keyboardSeekStep: 1000 / 30, timeDecimals: 2 },
 };
