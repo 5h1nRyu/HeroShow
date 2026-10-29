@@ -7,6 +7,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { createServer } from "../scripts/serve.mjs";
 import { ANIMATION_CONFIG as config } from "../js/animation-config.js";
+import { SHOW_CONFIG } from "../config/show.js";
 
 const require = createRequire(import.meta.url);
 // 可复用已安装的 Playwright，运行时网页本身没有任何第三方依赖。
@@ -39,6 +40,8 @@ test(
     await once(server, "listening");
     const browser = await chromium.launch({
       headless: true,
+      // 固定软件绘制路径，避免不同 GPU 合成批次造成文字边缘 1–2 级色差。
+      args: ["--disable-gpu", "--disable-lcd-text"],
       ...(process.env.CHROMIUM_PATH
         ? { executablePath: process.env.CHROMIUM_PATH }
         : {}),
@@ -51,6 +54,7 @@ test(
         deviceScaleFactor: dpr,
       });
       page.on("pageerror", (error) => errors.push(error.message));
+      page.on("response", (response) => { if (response.status() >= 400) errors.push(`${response.status()} ${response.url()}`); });
       if (exporting)
         await page.addInitScript(
           (opts) =>
@@ -348,7 +352,7 @@ test(
         async () => {
           const alternate = await open({
             route: async (target) => {
-              await target.route("**/js/animation-config.js", async (route) => {
+              await target.route("**/config/show.js", async (route) => {
                 const response = await route.fetch();
                 let body = await response.text();
                 body = body
@@ -406,6 +410,83 @@ test(
             await broken.close();
           }
         }
+      });
+      await t.test("仅更改配置即可替换全部文字、数据、颜色和素材路径", async () => {
+        const custom = structuredClone(SHOW_CONFIG);
+        Object.assign(custom.content, {
+          label: "十月月报", teamName: "复用测试\n这是替换后的新名称", scoreLabel: "累计得分",
+          score: "-1234.5", unit: "PTS", metricsNote: "配置复用测试",
+          metrics: [
+            { label: "统计", value: "3-1-0-2", format: "placements", columns: 2, spacing: 0.25, colors: { first: "#00ff00" } },
+            { label: "通过率", value: "91.2%", colors: { suffix: "dataInk" } },
+            { label: "场次", value: 6, unit: "场", characterColors: ["#ff0000"] },
+            { label: "新增指标", value: "88" },
+            { label: "更多数据", value: "12" },
+          ],
+        });
+        for (const key of ["portrait", "logo", "background", "grain"])
+          custom.assets[key] = `assets/images/reuse-${key}.svg`;
+        custom.assets.favicon = "assets/images/reuse-logo.svg";
+        custom.assets.fonts.title.src = "assets/fonts/reuse-title.ttf";
+        custom.assets.fonts.score.src = "assets/fonts/reuse-score.ttf";
+        custom.theme.accent = "#3399FF";
+        custom.theme.dataInk = "#FFCC00";
+        custom.motion.hold = 1700;
+        const requested = new Set();
+        const alternate = await open({ route: async (target) => {
+          await target.route("**/config/show.js", (route) => route.fulfill({
+            contentType: "text/javascript", body: `export const SHOW_CONFIG = ${JSON.stringify(custom)};`,
+          }));
+          await target.route("**/assets/images/reuse-*.svg", (route) => {
+            requested.add(new URL(route.request().url()).pathname);
+            return route.fulfill({ contentType: "image/svg+xml", body: '<svg xmlns="http://www.w3.org/2000/svg" width="300" height="600"><rect width="300" height="600" fill="#3399ff"/></svg>' });
+          });
+          await target.route("**/assets/fonts/reuse-*.ttf", async (route) => {
+            requested.add(new URL(route.request().url()).pathname);
+            const file = route.request().url().includes("reuse-title") ? "title-black.ttf" : "score-extrabold.ttf";
+            const response = await route.fetch({ url: `${base}/assets/fonts/${file}` });
+            await route.fulfill({ response });
+          });
+        }});
+        try {
+          await prepare(alternate);
+          const manifest = await alternate.evaluate(() => window.__VIDEO_EXPORT__.getManifest());
+          await alternate.evaluate((timeMs) => window.__VIDEO_EXPORT__.renderFrame({ timeMs }), manifest.durationMs - 100);
+          assert.equal(await alternate.locator("#eyebrow").textContent(), custom.content.label);
+          assert.equal(await alternate.locator("#team-name").textContent(), custom.content.teamName.replace(/\n/g, ""));
+          assert.deepEqual(await alternate.locator(".name-line").allTextContents(), custom.content.teamName.split("\n"));
+          assert.equal(await alternate.locator("#score-caption").textContent(), "累计得分");
+          assert.equal(await alternate.locator("#score-number").textContent(), "-1234.5");
+          assert.equal(await alternate.locator("#score-unit").textContent(), "PTS");
+          assert.equal(await alternate.locator("#metrics-note").textContent(), "配置复用测试");
+          assert.deepEqual(await alternate.locator(".metric-number").allTextContents(), ["3-1-0-2", "91.2%", "6", "88", "12"]);
+          assert.equal(await alternate.locator(".metric-accent").first().evaluate((e) => getComputedStyle(e).color), "rgb(0, 255, 0)");
+          assert.equal(await alternate.locator(".metric-suffix").evaluate((e) => getComputedStyle(e).color), "rgb(255, 204, 0)");
+          assert.equal(await alternate.locator(".metric:nth-child(3) .metric-digit").evaluate((e) => getComputedStyle(e).color), "rgb(255, 0, 0)");
+          for (const resource of [custom.assets.portrait, custom.assets.logo, custom.assets.background, custom.assets.grain, custom.assets.fonts.title.src, custom.assets.fonts.score.src])
+            assert.ok(requested.has(`/${resource}`), `加载配置中的资源 ${resource}`);
+          assert.ok(await alternate.evaluate(() => [...document.querySelectorAll(".metric")].every((cell) => cell.querySelector(".metric-value").scrollWidth <= cell.clientWidth)), "新增指标不会溢出列宽");
+        } finally { await alternate.close(); }
+      });
+      await t.test("空资源和空指标可隐藏，空字体可使用系统字体", async () => {
+        const custom = structuredClone(SHOW_CONFIG);
+        for (const key of ["portrait", "logo", "background", "grain", "favicon"]) custom.assets[key] = "";
+        custom.assets.fonts = {};
+        custom.content.metrics = [];
+        custom.content.scoreLabel = "";
+        custom.content.unit = "";
+        const alternate = await open({ route: (target) => target.route("**/config/show.js", (route) => route.fulfill({
+          contentType: "text/javascript", body: `export const SHOW_CONFIG = ${JSON.stringify(custom)};`,
+        })) });
+        try {
+          await prepare(alternate);
+          await alternate.evaluate(() => window.__VIDEO_EXPORT__.renderFrame({ timeMs: 3000 }));
+          for (const id of ["identity", "portrait-reveal", "metrics-panel", "score-unit"])
+            assert.equal(await alternate.locator(`#${id}`).isVisible(), false, `${id} 隐藏`);
+          assert.equal(await alternate.locator("#stage img[src]").count(), 0);
+          assert.equal(await alternate.locator(".score-caption-mask").isVisible(), false);
+          assert.equal(await alternate.locator(".instrument-field").first().evaluate((e) => getComputedStyle(e).backgroundImage), "none");
+        } finally { await alternate.close(); }
       });
       await t.test(
         "普通预览会播放、暂停、重播、阶段定位，并循环完整镜头",

@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>角川樱花骑士 · 九月队伍积分冠军</title>
-  <meta name="description" content="九月队伍积分冠军，角川樱花骑士，+197.2 PT。" />
-  <link rel="icon" type="image/svg+xml" href="assets/favicon.svg" />
+  <title>HeroShow</title>
+  <meta name="description" content="" />
+  <link rel="icon" />
   <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
   <main id="app">
-    <div id="viewport" role="img" aria-label="九月队伍积分冠军，角川樱花骑士，+197.2 PT。">
+    <div id="viewport" role="img" aria-label="">
       <div id="stage" aria-hidden="true">
         <section id="board" class="scene board">
           <div id="board-field" class="instrument-field"></div>
@@ -26,7 +26,7 @@
           </div>
           <div id="portrait-reveal" class="portrait-reveal"><div id="portrait-motion" class="portrait-motion"><img id="portrait" alt="" draggable="false" /></div></div>
           <section id="metrics-panel" class="metrics-panel">
-            <div id="metrics-note" class="metrics-note">示例数据 · 待替换</div>
+            <div id="metrics-note" class="metrics-note" hidden></div>
             <div id="metrics" class="metrics"></div>
           </section>
         </section>
@@ -45,16 +45,16 @@
         <button id="play" type="button" disabled>播放</button>
         <button id="replay" type="button" title="重新播放（R）" disabled>重播</button>
         <label class="sr-only" for="seek">动画进度</label>
-        <input id="seek" type="range" min="0" max="6860.1" step="0.1" value="0" disabled />
+        <input id="seek" type="range" min="0" max="1" step="0.1" value="0" disabled />
         <output id="time" for="seek"></output>
         <label class="sr-only" for="speed">播放速度</label>
         <select id="speed" aria-label="播放速度"><option value="0.25">0.25×</option><option value="0.5">0.5×</option><option value="1" selected>1×</option><option value="2">2×</option></select>
         <button id="full" type="button" title="全屏（F）">全屏</button>
       </div>
       <div class="chapters" aria-label="动画阶段">
-        <button type="button" data-chapter="0">主角亮相 <small>00.00</small></button>
-        <button type="button" data-chapter="443.1">亮场转接 <small>00.44</small></button>
-        <button type="button" data-chapter="1860.1">冠军展示 <small>01.86</small></button>
+        <button type="button" data-chapter="0"><span></span> <small></small></button>
+        <button type="button" data-chapter="0"><span></span> <small></small></button>
+        <button type="button" data-chapter="0"><span></span> <small></small></button>
       </div>
     </div>
     <div id="status" class="sr-only" role="status" aria-live="polite"></div>

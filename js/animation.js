@@ -25,7 +25,7 @@ export function createAnimation(config) {
     const intro = clamp(time / timing.bridge.start);
     // 起点与终点各保留半行在画面中，全程匀速左移，不做尾部缓停。
     const flight = phase(time, timing.introText);
-    const textWidth = Number(el["reveal-name"].dataset.textWidth) || 2850;
+    const textWidth = Number(el["reveal-name"].dataset.textWidth) || layout.introMaxWidth;
     el["reveal-name"].style.transform = `translateX(${mix(config.stage.width - textWidth / 2, -textWidth / 2, flight)}px)`;
     el["reveal-field"].style.transform = `translateX(${-intro * 35}px) scale(1.08)`;
     // 交错进入但同时拼合；停顿期间所有片精确归零，之后沿原方向穿出。

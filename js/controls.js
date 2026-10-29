@@ -10,6 +10,7 @@ export function createControls({ player, config, resize, isExporting }) {
   const chapterTimes = [0, config.timing.bridge.start, config.timing.board.start + config.timing.board.duration];
   controls.querySelectorAll("[data-chapter]").forEach((button, index) => {
     button.dataset.chapter = chapterTimes[index];
+    button.querySelector("span").textContent = config.ui.chapters[index];
     button.querySelector("small").textContent = (chapterTimes[index] / 1000).toFixed(2).padStart(5, "0");
   });
   function syncPosition(position) {

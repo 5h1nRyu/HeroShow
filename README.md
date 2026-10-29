@@ -1,105 +1,100 @@
-# HeroShow · v23 / 双列顺位统计
+# HeroShow
 
-角川樱花骑士的冠军展示动画，1920 × 1080，完整时长为 6.8601 秒，其中全部元素在 1.8601 秒到位后展示 5 秒。保留暖色材质、仪器标记和强字形，画面无外框、无图片描边。所有强调色统一使用原始队徽中的樱花粉 `#EF92AE`，底部四项指标使用独立深色背景。主角亮相阶段只保留队名与背景，合影在冠军展示阶段出现。队徽下方不再带旗子，独立置于队名左侧的 272 × 272 正方形区域，居中等比完整显示，保留四周留白。
+配置驱动的展示动画模板，使用原生 HTML、CSS 和 JavaScript，无前端运行时依赖和构建步骤。固定设计画布为 1920 × 1080，预览按窗口缩放，支持 1080p / 4K 逐帧导出。
 
-主文案为「九月队伍积分冠军」「角川樱花骑士」「+197.2 PT」。积分上方的「月间队伍得分」使用 30px 纯黑文字，贴近积分字形，随积分一起揭示。底部四项指标来自用户提供的队伍排名截图，隐藏「示例数据 · 待替换」标识。
+## 项目架构
 
-数据从左到右依次为月间顺位统计、平均顺位、一位率、避四率。月间顺位统计占两列，其余各占一列；`6-2-2-2` 的字符间隙为原两列均分间隙的一半，左对齐，后续三项位置保持不变。四项标签为纯白色；顺位统计中的 `6` 和两个百分号为樱花粉，其余数字、连字符和小数点为纯白色，平均顺位 `2.00` 全部为纯白色。已移除打点效率和铳点损失。
-
-开场队名整行恢复为黑色，不使用描边。总分后的 PT 字号由 49px 放大至 98px，积分容器同步加宽以容纳单位并保留主数字字号。冠军标题字号由 34px 增至 68px，标题遮罩同步增高以完整显示。转场五块平行四边形保持最初的低对比度暖色渐变：`linear-gradient(90deg,#e9e0d3,#f0e8dc 65%,#ece3d6)`。
-
-## 战绩来源与计算
-
-用户提供的队伍排名截图中，KADOKAWAサクラナイツ行：12 场，一至四位分别为 6、2、2、2 次，总积分 197.2 PT。
-
-| 指标 | 计算 | 展示值 |
-| --- | --- | --- |
-| 顺位统计 | 一位、二位、三位、四位次数 | 6-2-2-2 |
-| 平均顺位 | (1 × 6 + 2 × 2 + 3 × 2 + 4 × 2) ÷ 12 | 2.00 |
-| 一位率 | 6 ÷ 12 × 100% | 50.00% |
-| 避四率 | (12 − 2) ÷ 12 × 100% | 83.33% |
-
-## 本地预览
-
-在本目录运行 `npm start`，打开 <http://127.0.0.1:8033>。网页为原生 HTML / CSS / JavaScript，运行不需要安装依赖或构建。ES modules 需要 HTTP 服务，不能直接双击 index.html。
-
-默认自动循环完整段落。空格显示 / 隐藏画布外的控制栏；显示后在片尾停止，隐藏后恢复完整循环。R 重播，F 全屏，左右方向键移动 1/30 秒。控制栏支持暂停、倍速、拖动进度和三个阶段定位。
-
-可用 URL 定位：<http://127.0.0.1:8033/?t=1860.1&controls=1> 停在冠军展示画面并显示控制栏。`t` 的单位是毫秒，存在此参数时不自动播放。
-
-## 镜头编排
-
-| 时间 | 画面与动作 |
-| --- | --- |
-| 0–0.4431 秒 | 主角亮相时长为原 0.633 秒的 70%。只保留队名匀速左移和背景，移除合影。 |
-| 0.4431–0.7731 秒 | 五块中性色斜切面交错进入，并在同一时刻完全拼合。转场没有队标。 |
-| 0.7731–0.8931 秒 | 斜片全部归零，完整拼合画面停顿 0.12 秒。 |
-| 0.8931–1.2231 秒 | 斜片沿原方向继续运动，从相反侧穿出。底层场景在开始退出、仍完全遮挡时切换，但全部冠军元素保持入场初始状态。 |
-| 1.2231–1.8601 秒 | 转接完全结束后，人物底板展开、合照入位、队名与积分揭示，四项指标依次进入。队名左侧的实色队徽在独立正方形区域揭幕，没有旗子底板。 |
-| 1.8601–6.8601 秒 | 到位后稳定展示 5 秒。人物、标题、队徽与数字固定，只有低对比度背景标记缓慢运动；结束时保持冠军展示画面。 |
-
-入场强调镜头变化、层次和观看顺序；展示阶段提供充分阅读时间。分数始终为配置中的完整字符串，不做数字滚动。所有动作由同一条绝对时间轴驱动，没有独立运行的 CSS 动画。
-
-## 复用与调整
-
-编辑 `js/animation-config.js`：
-
-```js
-content: {
-  label: '九月队伍积分冠军',
-  teamName: '角川樱花骑士',
-  scoreLabel: '月间队伍得分',
-  score: '+197.2',
-  unit: 'PT',
-  portrait: 'assets/images/player.png',
-  logo: 'assets/images/team-logo.png',
-  metricsArePlaceholders: false,
-  metrics: [
-    { label: '月间顺位统计', value: '6-2-2-2', unit: '', format: 'placements', columns: 2 },
-    { label: '平均顺位', value: '2.00', unit: '' },
-    { label: '一位率', value: '50.00%', unit: '' },
-    { label: '避四率', value: '83.33%', unit: '' }
-  ]
-}
+```text
+config/show.js          唯一复用配置入口：文字、指标、素材、配色、字号和节拍
+index.html              场景与播放器的 DOM 骨架，不包含示例业务文案
+css/styles.css          固定版式、材质和组件样式，使用配置传入的 CSS 变量
+js/config.js            配置校验、指标默认值合并、绝对时间轴计算
+js/animation-config.js  将复用配置编译为运行时配置
+js/content.js           生成标题、积分、指标和无障碍描述，应用素材与配色
+js/layout.js            字体加载后的自适应字号、换行和顺位字符间距
+js/resources.js         按配置加载字体与图片，检查必要资源是否可用
+js/animation.js         由绝对时间计算动画，支持任意跳转和重复渲染
+js/player.js            预览播放、暂停、循环与倍速
+js/controls.js          播放控制栏、键盘和章节定位
+js/app.js               组装模块、缩放视口、管理资源与导出生命周期
+assets/                 默认配置实际使用的图片、字体及字体许可证
+scripts/                本地 HTTP 服务、关键帧及 MP4 预览工具
+tests/                  配置校验、复用场景和 Chromium 导出回归测试
 ```
 
-`metricsArePlaceholders` 当前为 `false`，使用截图战绩；以后临时使用示例数字时可改为 `true` 显示占位提示。`metrics` 改为空数组可隐藏整个新增数据区。标签、数字和单位均可单独修改，字号会按列宽自适应。
+数据流：`config/show.js → 配置校验与时间轴 → 内容生成 → 资源加载 → 排版适配 → 播放 / 导出`。
 
-合照建议使用透明 PNG / WebP，只在冠军展示阶段使用。队徽使用 `object-fit: contain` 在正方形区域内居中显示；替换成长方形或正方形有效区域的素材均不会拉伸、裁切，也不需要修改容器尺寸。队名和积分会根据可用宽度缩小字号。字体和素材全部本地加载，无 CDN 和在线接口。
+## 启动预览
 
-- `layout`：标题换行、字号、展示段合照偏移和缩放、展示段队徽缩放。队徽的正方形容器尺寸在 CSS `.identity` 中设置。
-- `theme`：暖纸底、黑色与队徽樱花粉；`accent` 和 `pink` 共用 `#EF92AE`。`data`、`dataInk`、`dataMuted` 分别配置数据区底色、基础文字、占位提示颜色。标签、普通数字、连字符与小数点为纯白色，顺位统计首位次数和百分号使用强调色。指标设置 `format: 'placements'` 可强调首位次数，`highlight: true` 可强调该指标的全部数字。
-- `timing`：开场文字左滑、斜片进入 / 拼合停顿 / 退出、正方形区域队徽与分层入场的起点和时长，单位毫秒。`bridge.enter`、`bridge.pause`、`bridge.exit` 分别控制转场三个动作；`hold` 为全部元素入位后的 5 秒展示区间。其余场景和总时长从这些基础时长计算。
-- `ambient`：展示背景微动开关、周期和位移。
-- `stage.duration`：完整导出长度；改变镜头节奏时应同步调整。
-- `text.enabled`：隐藏所有业务文字，包括开场大字和新增数据区。
-
-## VideoMaker 逐帧协议 v1
-
-沿用 `window.__VIDEO_EXPORT__` 的 `version: 1`、`getManifest()`、`prepare(options)`、`reset()`、`renderFrame(frame)` 和 `dispose()`。
-
-Manifest 返回 6860.1 毫秒、1920 × 1080 推荐视口、`supportsSeeking: true`。启动时检测 `window.__VIDEO_EXPORT_REQUEST__`，导出模式不启动自动播放，始终隐藏控制栏。prepare 等待字体、所有前景图片与背景 SVG，缺少素材时拒绝导出。画面仅由 `frame.timeMs` 决定，支持直接跳转、中途片段、倒序和重复渲染。
-
-VideoMaker 中建议以 1920 × 1080 视口、60 fps 输出。4K 输出使用相同视口和 3840 × 2160 输出。默认无声音。协议来源：<https://github.com/5h1nRyu/VideoMaker/blob/main/docs/protocol-v1.md>。
-
-## 验证与预览产物
-
-使用已有 Playwright 与 Chromium：
+需要 Node.js 22 或更新版本。在项目根目录运行：
 
 ```powershell
-$env:PLAYWRIGHT_MODULE = '已有 node_modules\playwright 的绝对路径'
-$env:CHROMIUM_PATH = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
-npm test
+npm start
 ```
 
-测试覆盖指标可读性、画布无框线、独立数据底色、队徽区域为正方形且移除旗子、队徽完整等比显示、强调色统一为队徽粉色、转场移除队标、斜片完整拼合后停顿再穿出、开场移除合影且时长为原来的 70%、到位后 5 秒展示，以及完整时间轴两遍 60 fps、关键帧像素一致性、场景边界、乱序 seek、阅读期前景稳定、4K 分辨率、长文案、素材缺失、播放控制与生命周期释放。不自动安装浏览器。
+打开 <http://127.0.0.1:8033>。使用 HTTP 服务打开页面，不能直接双击 HTML。默认循环播放；空格显示控制栏，R 重播，F 全屏，左右方向键逐帧移动。显示控制栏后可暂停、拖动和切换倍速。`?t=2400&controls=1` 可停在指定毫秒并显示控制栏。
 
-生成关键帧：`npm run preview`。生成完整 1080p / 30 fps MP4：`npm run preview -- --video`，需已安装 FFmpeg；可用 `FFMPEG_PATH` 指定其路径。默认产物位于 `.artifacts/v23-wide-rank-stats/`，`ARTIFACT_DIR` 可改变位置。预览视频长度随配置自动调整，最终时长按输出帧率向上取整到整帧。
+## 复用设置
 
-重新设计之前的工作区版本保存在 `.artifacts/v3-source/`，未覆盖历史素材。上一版深底樱花粉设计保存在 `.artifacts/v4-sports-source/`，带框 NASA 版保存在 `.artifacts/v4-nasa-source/`，浅底数据版保存在 `.artifacts/v5-data-source/`，带仪器点缀的数据版保存在 `.artifacts/v6-instruments-source/`。本次修改前的大队徽水印版保存在 `.artifacts/v9-watermark-source/`。
+只需编辑 `config/show.js`，刷新页面即可生效。保留配置文件中的其他设置，按需修改以下部分。
 
-## 文件
+### 文字与数据
 
-`index.html` 为三段场景；`css/styles.css` 为版式和材质；`js/animation-config.js` 为配置；`js/animation.js` 为绝对时间渲染；`js/app.js` 为资源和导出生命周期；`js/player.js` / `js/controls.js` 为预览交互；`scripts/serve.mjs` 为本地服务器；`scripts/preview.mjs` 为关键帧与视频预览生成器。
+`content` 控制标题 `label`、队名或主体名 `teamName`、得分说明 `scoreLabel`、分数 `score` 和单位 `unit`。分数与指标按字符串原样展示，不自动计算、添加正号或补小数位。名称支持 `\n` 手动换行；没有换行符时由 `layout.nameBreakAfter` 控制断行，设为 `0` 不主动断行。长名称、长分数及指标会自动缩小字号以适应区域。
 
-新加的低对比度仪器网格和颗粒为本地 SVG，未引入参考包的选手、游戏原画或赛事标志。代码组织继续使用 HeroShow 自身的结构。
+`content.metrics` 可增减或调整顺序，设为 `[]` 隐藏数据区；`metricsNote` 留空隐藏数据区说明。例如：
+
+```js
+metrics: [
+  {
+    label: '月间顺位统计', value: '6-2-2-2',
+    format: 'placements', columns: 2, spacing: 0.5,
+    colors: { first: 'accent' },
+  },
+  { label: '平均顺位', value: '2.00' },
+  { label: '一位率', value: '50.00%' },
+  { label: '避四率', value: '83.33%' },
+]
+```
+
+| 字段 | 用途 |
+| --- | --- |
+| `label`、`value`、`unit` | 标签、值、附加单位；单位可省略 |
+| `columns` | 占几份等宽列，默认 1；第一项设为 2 即占两列 |
+| `format` | 默认 `number`；`placements` 用于连字符统计，按配置拉开字符 |
+| `spacing` | `placements` 中可用字符间隙的比例，0 紧排、0.5 半间隙、1 铺满当前列；调整不移动后面的指标 |
+| `colors` | 覆盖 `label`、`number`、`decimal`、`separator`、`suffix`、`unit`、`first` 的颜色；`first` 为顺位统计第一组数字 |
+| `characterColors` | 可选颜色数组，按字符覆盖颜色，优先于 `colors`，例如 `['accent', '#fff']` |
+
+颜色可写 CSS 颜色或 `theme` 中的键名，例如 `accent`、`dataInk`。全局指标颜色默认值在 `metricStyle.colors` 中设置。指标过多时会缩小字号，建议保持在单行能清楚阅读的数量。
+
+### 素材与字体
+
+在 `assets` 中修改 `portrait`（合影或主体图）、`logo`、`background`、`grain`、`favicon` 路径。将新素材放进项目的 `assets/` 下，路径相对于项目根目录，例如 `assets/images/new-team.webp`。合影建议使用透明 PNG / WebP；队徽按原比例完整显示，不裁切。图片和纹理路径留空会隐藏相应素材。
+
+字体路径在 `assets.fonts.title.src` 和 `assets.fonts.score.src`，对应字重由 `weight` 指定；支持 TTF、OTF、WOFF 和 WOFF2。`src` 留空或省略该字体配置时使用系统字体。替换字体应同时保存其许可证。已配置但缺失的图片或字体会显示资源错误，并阻止导出。
+
+### 配色、构图与节奏
+
+- `theme`：主背景、文字、强调色、数据区、人物底板与转场渐变颜色。
+- `layout`：标题和数字字号、得分说明位置、指标列间距、名称断行、合影偏移与缩放、队徽缩放。
+- `motion`：开场时长、转场进入 / 停顿 / 退出、各元素入场偏移和时长，以及 `hold` 展示时长，单位为毫秒。
+- `ambient`：展示背景的微动开关、周期和幅度。
+- `text.enabled`：设为 `false` 隐藏展示文字及数据区。
+- `ui.chapters`：三个章节按钮的显示文字。
+
+入场始终从转场完全退出后开始；程序根据名称字符数和指标数量等待所有元素入场完成，再保持 `motion.hold` 指定的展示时长，自动计算章节时间与总时长。
+
+## 测试和导出
+
+浏览器工具使用 Playwright。运行开发测试前执行 `npm ci`，并准备可用的 Chromium；可用 `CHROMIUM_PATH` 指定已有 Chrome 的完整路径，使用现有 Playwright 时可设置 `PLAYWRIGHT_MODULE`。
+
+```powershell
+$env:CHROMIUM_PATH = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
+npm test
+npm run preview
+```
+
+关键帧默认输出到 `.artifacts/preview/`。`npm run preview -- --video` 可生成 30 fps MP4，需要 FFmpeg；`FFMPEG_PATH` 可指定可执行文件，`ARTIFACT_DIR` 可指定输出目录。生成物不进入版本控制。测试及预览工具固定使用 Chromium 软件绘制，以保证逐像素比较稳定；外部工具需要逐像素复现时使用同样的 `--disable-gpu --disable-lcd-text` 启动参数。
+
+页面提供 `window.__VIDEO_EXPORT__` 协议 v1：`getManifest()`、`prepare(options)`、`reset()`、`renderFrame({ timeMs })`、`dispose()`。导出前设置 `window.__VIDEO_EXPORT_REQUEST__` 可关闭自动播放；`prepare` 等待字体和图片完成加载。使用固定 1920 × 1080 视口，4K 输出采用 3840 × 2160 和设备像素比 2。导出无音频。

@@ -11,8 +11,15 @@ const types = {
   ".png": "image/png",
   ".webp": "image/webp",
   ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".avif": "image/avif",
+  ".gif": "image/gif",
   ".svg": "image/svg+xml",
   ".ttf": "font/ttf",
+  ".otf": "font/otf",
+  ".woff": "font/woff",
+  ".woff2": "font/woff2",
+  ".ico": "image/x-icon",
 };
 
 export function createServer() {
@@ -31,7 +38,7 @@ export function createServer() {
       if (
         relative.startsWith("..") ||
         path.isAbsolute(relative) ||
-        !/^(index\.html|(?:assets|css|js)[\\/][^]*\.(?:png|webp|jpg|svg|ttf|css|js))$/.test(
+        !/^(index\.html|(?:assets|css|js|config)[\\/][^]*\.(?:png|webp|jpe?g|avif|gif|svg|ico|ttf|otf|woff2?|css|js))$/i.test(
           relative,
         )
       ) {
@@ -41,7 +48,7 @@ export function createServer() {
       const body = await readFile(absolute);
       response.writeHead(200, {
         "Content-Type":
-          types[path.extname(absolute)] || "application/octet-stream",
+          types[path.extname(absolute).toLowerCase()] || "application/octet-stream",
         "Cache-Control": "no-store",
         "Content-Length": body.length,
         "X-Content-Type-Options": "nosniff",
